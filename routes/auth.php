@@ -14,6 +14,7 @@ use App\Http\Controllers\QualityLeadController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SellerLeadController;
 use App\Http\Controllers\UserController;
+use App\Models\LeadCustomFields;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -40,6 +41,9 @@ Route::middleware('auth')->group(function () {
     Route::resource('users', UserController::class);
     //Call Agent
     Route::resource('leads', LeadController::class);
+    //Leads
+    Route::resource('leadcustomfields', LeadCustomFields::class);
+
     //Audio Quality
     Route::group(['middleware' => ['can:upload audio']], function () {
         Route::resource('audios', AudioLeadController::class);
@@ -62,7 +66,7 @@ Route::middleware('auth')->group(function () {
     Route::get('terminConversionRate', [DashboardStatisticsController::class, 'terminConversionRate'])->name('terminConversionRate');
     Route::get('qualityConversionRate', [DashboardStatisticsController::class, 'qualityConversionRate'])->name('qualityConversionRate');
     Route::get('confirmationConversionRate', [DashboardStatisticsController::class, 'confirmationConversionRate'])->name('confirmationConversionRate');
-
+    
     Route::get('/scrape-upload', [AudioScrapController::class, 'scrapeAndUpload'])->name('scrape');
 
     Route::get('confirm-password', [ConfirmablePasswordController::class, 'show'])
