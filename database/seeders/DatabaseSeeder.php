@@ -18,6 +18,8 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // User::factory(10)->create();
+        $this->call([CompaniesSeeder::class]);
+        
         $company =  Companies::create(['company_name' => 'Bleron LLC']);
 
         Permission::create(['name' => 'import csv']);

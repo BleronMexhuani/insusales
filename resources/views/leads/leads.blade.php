@@ -206,7 +206,7 @@
                                 </td>
                                 <td class="flex justify-center py-4 ">
                                     {{-- @if ($item->status == 'for call agent') --}}
-                                    <a href="{{ route('leads.show', ['lead' => $item->id]) }}"><svg
+                                    <a href="{{ route('leads.edit', ['lead' => $item->id]) }}"><svg
                                             xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                             viewBox="0 0 24 24" fill="none">
                                             <path fill-rule="evenodd" clip-rule="evenodd"

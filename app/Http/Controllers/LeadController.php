@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Lead;
 use App\Models\LeadCustomData;
 use App\Models\LeadCustomFields;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -18,8 +19,9 @@ class LeadController extends Controller
     {
         //
         $leads = Lead::paginate(25);
+        $agents = User::all();
 
-        return view('leads', compact('leads'));
+        return view('leads.leads', compact('leads', 'agents'));
     }
 
     /**
@@ -37,31 +39,30 @@ class LeadController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request, $project_id)
+    public function store(Request $request)
     {
         //Also we have to check if the company or the project is with quality or something we have to ask the chief about that
 
         $lead = Lead::create([
+            'company_id' => 1,
             'vorname' => $request->vorname,
             'nachname' => $request->nachname,
             'handy_nummer' => $request->handy_nummer,
             // 'status' => 'for quality' check for permission if it has the quality or directly confrimation or directly seller or none of them so 
         ]);
 
-        $leadcustomfields = LeadCustomFields::where('project_id', $project_id)->get();
-        $leadcustomfieldID = $leadcustomfields->first()->pluck('id');
+        $leadcustomfields = LeadCustomFields::where('project_id', $request->project_id)->get();
         $leadCustomData = [];
 
-        foreach ($leadcustomfields as $key => $value) {
+        foreach ($leadcustomfields as $item) {
             $leadCustomData[] = [
-                $request->$key => $value,
-                'lead_custom_field_id' => $leadcustomfieldID,
+                'value' => $request[$item['input_name']],
+                'lead_custom_field_id' => $item['id'],
                 'lead_id' => $lead->id,
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now()
+                'created_at' => Carbon::now()->format('Y-m-d H:i:s'),
+                'updated_at' => Carbon::now()->format('Y-m-d H:i:s')
             ];
         }
-
         LeadCustomData::insert($leadCustomData);
 
         return redirect()->back()->with(['message' => 'Lead Succesfully created']);
@@ -73,6 +74,10 @@ class LeadController extends Controller
     public function show(string $id)
     {
         //
+        $lead = Lead::where('id', $id)->first();
+        $lead_custom_data = LeadCustomData::with('customfields')->where('lead_id', $lead->id)->get();
+
+        return view('leads.lead_info', compact('lead', 'lead_custom_data'));
     }
 
     /**
@@ -81,6 +86,11 @@ class LeadController extends Controller
     public function edit(string $id)
     {
         //
+        $lead = Lead::where('id', $id)->first();
+        $lead_custom_data = LeadCustomData::with('customfields')->where('lead_id', $lead->id)->get();
+        $group_names = array_unique($lead_custom_data->pluck('group_name')->toArray());
+     
+        return view('leads.lead_info', compact('lead', 'lead_custom_data','group_names'));
     }
 
     /**
@@ -89,6 +99,29 @@ class LeadController extends Controller
     public function update(Request $request, string $id)
     {
         //
+        $lead = Lead::where('id', $id)->update(
+            [
+                'vorname' => $request->vorname,
+                'nachname' => $request->nachname,
+                'handy_nummer' => $request->handy_nummer
+
+            ]
+        );
+
+        //Update Custom fields
+        $customfields = LeadCustomData::with('customfields')->where('lead_id', $id)->get();
+
+        foreach ($customfields as $customfield) {
+            LeadCustomData::whereHas('customfields', function ($query) use ($customfield, $id) {
+                return $query->where('input_name', $customfield->customfields['input_name'])->where('lead_id', $id);
+            })->update(
+                [
+                    'value' => $request[$customfield->customfields['input_name']]
+
+                ]
+            );
+        }
+        return redirect()->back();
     }
 
     /**

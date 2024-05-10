@@ -14,11 +14,12 @@ return new class extends Migration
         Schema::create('lead_custom_data', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('lead_custom_field_id');
-            $table->integer('lead_id');
+            $table->unsignedBigInteger('lead_id');
             $table->string('value')->nullable();
             $table->timestamps();
 
             $table->foreign('lead_custom_field_id')->references('id')->on('lead_custom_fields')->onDelete('cascade');
+            $table->foreign('lead_id')->references('id')->on('leads')->onDelete('cascade');
 
         });
     }

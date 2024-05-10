@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('company_id');
             $table->unsignedBigInteger('project_id');
+            $table->string('input_name');
             $table->string('input_type'); //text or select
             $table->string('default_value')->nullable(); //If select than select values
             $table->string('attributes')->nullable(); //Multiple or required or something else 
